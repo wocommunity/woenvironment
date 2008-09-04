@@ -70,8 +70,11 @@ public final class WOEnvironment extends Environment {
   private WOVariables woVariables;
 
   public WOEnvironment(Map<Object, Object> existingProperties) {
-    super();
     this.woVariables = new WOVariables(this, existingProperties);
+  }
+  
+  public WOEnvironment(WOVariables variables, Map<Object, Object> existingProperties) {
+    this.woVariables = new WOVariables(this, variables, existingProperties);
   }
 
   /**
