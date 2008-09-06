@@ -2,7 +2,7 @@
  * 
  * The ObjectStyle Group Software License, Version 1.0 
  *
- * Copyright (c) 2002 - 2006 The ObjectStyle Group 
+ * Copyright (c) 2004 The ObjectStyle Group 
  * and individual authors of the software.  All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -53,74 +53,60 @@
  * <http://objectstyle.org/>.
  *
  */
+package org.objectstyle.woenvironment.frameworks;
 
-package org.objectstyle.woenvironment.env;
-
-import java.io.File;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
-/**
- * @author uli
- * 
- * To prevent static variables create an instance of WOEnvironment to access the
- * environment and WOVariables.
- */
+public abstract class FrameworkModel<T extends IFramework> {
+	private List<Root<T>> roots;
 
-public final class WOEnvironment extends Environment {
-  private WOVariables woVariables;
+	protected abstract List<Root<T>> createRoots();
 
-  public WOEnvironment(Map<Object, Object> existingProperties) {
-    this.woVariables = new WOVariables(this, existingProperties);
-  }
-  
-  public WOEnvironment(WOVariables variables, Map<Object, Object> existingProperties) {
-    this.woVariables = new WOVariables(this, variables, existingProperties);
-  }
+	public synchronized List<Root<T>> getRoots() {
+		if (this.roots == null) {
+			this.roots = createRoots();
+		}
+		return this.roots;
+	}
 
-  /**
-   * @return WOVariables
-   */
-  public WOVariables getWOVariables() {
-    return this.woVariables;
-  }
+	public synchronized Set<T> getAllFrameworks() {
+		Map<String, T> frameworks = new HashMap<String, T>();
+		for (Root<T> root : getRoots()) {
+			for (T framework : root.getFrameworks()) {
+				String frameworkName = framework.getName();
+				if (!frameworks.containsKey(frameworkName)) {
+					frameworks.put(frameworkName, framework);
+				}
+			}
+		}
+		return new HashSet<T>(frameworks.values());
+	}
 
-  /**
-   * Method wo5or51 returns true if the installe WO version is 5.0 or 5.1.
-   * 
-   * @return boolean
-   */
-  public boolean wo5or51() {
-    return (this.bootstrap() == null);
-  }
+	public synchronized void refreshRoots() {
+		this.roots = null;
+		getRoots();
+	}
 
-  /**
-   * Method wo52 returns true if the installe WO version is 5.2.
-   * 
-   * @return boolean
-   */
-  public boolean wo52() {
-    return !this.wo5or51();
-  }
+	public T getFrameworkWithName(String frameworkName) {
+		for (Root<T> root : getRoots()) {
+			T framework = root.getFrameworkWithName(frameworkName);
+			if (framework != null) {
+				return framework;
+			}
+		}
+		return null;
+	}
 
-  /**
-   * Method bootstrap returns the bootstrap.jar if it exists.
-   * 
-   * @param project
-   * @return File
-   */
-  public File bootstrap() {
-    String bootstrapJarPath = getWOVariables().boostrapJar();
-    File bootstrapJar = null;
-    if (bootstrapJarPath != null) {
-      bootstrapJar = new File(bootstrapJarPath);
-      if (!bootstrapJar.exists()) {
-        bootstrapJar = null;
+  public Root<T> getRootWithShortName(String shortName) {
+    for (Root<T> root : getRoots()) {
+      if (shortName.equals(root.getShortName())) {
+        return root;
       }
     }
     return null;
-  }
-
-  public boolean variablesConfigured() {
-    return getWOVariables().systemRoot() != null && getWOVariables().localRoot() != null;
   }
 }

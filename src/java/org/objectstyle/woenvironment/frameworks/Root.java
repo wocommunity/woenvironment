@@ -2,7 +2,7 @@
  * 
  * The ObjectStyle Group Software License, Version 1.0 
  *
- * Copyright (c) 2002 - 2006 The ObjectStyle Group 
+ * Copyright (c) 2004 The ObjectStyle Group 
  * and individual authors of the software.  All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -53,74 +53,45 @@
  * <http://objectstyle.org/>.
  *
  */
+package org.objectstyle.woenvironment.frameworks;
 
-package org.objectstyle.woenvironment.env;
+import java.util.Set;
 
-import java.io.File;
-import java.util.Map;
-
-/**
- * @author uli
- * 
- * To prevent static variables create an instance of WOEnvironment to access the
- * environment and WOVariables.
- */
-
-public final class WOEnvironment extends Environment {
-  private WOVariables woVariables;
-
-  public WOEnvironment(Map<Object, Object> existingProperties) {
-    this.woVariables = new WOVariables(this, existingProperties);
-  }
+public abstract class Root<T extends IFramework> {
+  public static final String PROJECT_ROOT = "Project";
+  public static final String PROJECT_LOCAL_ROOT = "ProjectLocal";
+  public static final String EXTERNAL_ROOT = "External";
+  public static final String USER_ROOT = "User";
+  public static final String NETWORK_ROOT = "Network";
+  public static final String LOCAL_ROOT = "Local";
+  public static final String SYSTEM_ROOT = "System";
   
-  public WOEnvironment(WOVariables variables, Map<Object, Object> existingProperties) {
-    this.woVariables = new WOVariables(this, variables, existingProperties);
+  private String shortName;
+	private String name;
+
+	public Root(String shortName, String name) {
+	  this.shortName = shortName;
+		this.name = name;
+		//System.out.println("Root.Root: " + this.name);
+	}
+
+	public abstract Set<T> getFrameworks();
+
+	public T getFrameworkWithName(String frameworkName) {
+		Set<T> frameworks = getFrameworks();
+		for (T framework : frameworks) {
+			if (framework.getName().equals(frameworkName)) {
+				return framework;
+			}
+		}
+		return null;
+	}
+	
+	public String getShortName() {
+    return shortName;
   }
 
-  /**
-   * @return WOVariables
-   */
-  public WOVariables getWOVariables() {
-    return this.woVariables;
-  }
-
-  /**
-   * Method wo5or51 returns true if the installe WO version is 5.0 or 5.1.
-   * 
-   * @return boolean
-   */
-  public boolean wo5or51() {
-    return (this.bootstrap() == null);
-  }
-
-  /**
-   * Method wo52 returns true if the installe WO version is 5.2.
-   * 
-   * @return boolean
-   */
-  public boolean wo52() {
-    return !this.wo5or51();
-  }
-
-  /**
-   * Method bootstrap returns the bootstrap.jar if it exists.
-   * 
-   * @param project
-   * @return File
-   */
-  public File bootstrap() {
-    String bootstrapJarPath = getWOVariables().boostrapJar();
-    File bootstrapJar = null;
-    if (bootstrapJarPath != null) {
-      bootstrapJar = new File(bootstrapJarPath);
-      if (!bootstrapJar.exists()) {
-        bootstrapJar = null;
-      }
-    }
-    return null;
-  }
-
-  public boolean variablesConfigured() {
-    return getWOVariables().systemRoot() != null && getWOVariables().localRoot() != null;
-  }
+	public String getName() {
+		return this.name;
+	}
 }

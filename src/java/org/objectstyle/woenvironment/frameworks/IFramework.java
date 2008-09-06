@@ -2,7 +2,7 @@
  * 
  * The ObjectStyle Group Software License, Version 1.0 
  *
- * Copyright (c) 2002 - 2006 The ObjectStyle Group 
+ * Copyright (c) 2004 The ObjectStyle Group 
  * and individual authors of the software.  All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -53,74 +53,20 @@
  * <http://objectstyle.org/>.
  *
  */
+package org.objectstyle.woenvironment.frameworks;
 
-package org.objectstyle.woenvironment.env;
+import java.util.List;
 
-import java.io.File;
-import java.util.Map;
+public interface IFramework extends Comparable<IFramework> {
+	public String getName();
 
-/**
- * @author uli
- * 
- * To prevent static variables create an instance of WOEnvironment to access the
- * environment and WOVariables.
- */
+	public Root getRoot();
 
-public final class WOEnvironment extends Environment {
-  private WOVariables woVariables;
+	public int compareTo(IFramework o);
 
-  public WOEnvironment(Map<Object, Object> existingProperties) {
-    this.woVariables = new WOVariables(this, existingProperties);
-  }
-  
-  public WOEnvironment(WOVariables variables, Map<Object, Object> existingProperties) {
-    this.woVariables = new WOVariables(this, variables, existingProperties);
-  }
+	public IFramework resolveFramework();
 
-  /**
-   * @return WOVariables
-   */
-  public WOVariables getWOVariables() {
-    return this.woVariables;
-  }
+	public List<FrameworkLibrary> getFrameworkLibraries();
 
-  /**
-   * Method wo5or51 returns true if the installe WO version is 5.0 or 5.1.
-   * 
-   * @return boolean
-   */
-  public boolean wo5or51() {
-    return (this.bootstrap() == null);
-  }
-
-  /**
-   * Method wo52 returns true if the installe WO version is 5.2.
-   * 
-   * @return boolean
-   */
-  public boolean wo52() {
-    return !this.wo5or51();
-  }
-
-  /**
-   * Method bootstrap returns the bootstrap.jar if it exists.
-   * 
-   * @param project
-   * @return File
-   */
-  public File bootstrap() {
-    String bootstrapJarPath = getWOVariables().boostrapJar();
-    File bootstrapJar = null;
-    if (bootstrapJarPath != null) {
-      bootstrapJar = new File(bootstrapJarPath);
-      if (!bootstrapJar.exists()) {
-        bootstrapJar = null;
-      }
-    }
-    return null;
-  }
-
-  public boolean variablesConfigured() {
-    return getWOVariables().systemRoot() != null && getWOVariables().localRoot() != null;
-  }
+	public boolean isResolved();
 }
