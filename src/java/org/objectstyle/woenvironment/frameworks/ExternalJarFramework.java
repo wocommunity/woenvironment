@@ -55,85 +55,10 @@
  */
 package org.objectstyle.woenvironment.frameworks;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.io.File;
 
-public abstract class FrameworkModel<T extends IFramework> {
-	private List<Root<T>> roots;
-
-	protected abstract List<Root<T>> createRoots();
-	
-	public synchronized void invalidateRoots() {
-		this.roots = null;
+public class ExternalJarFramework extends AbstractJarFramework {
+	public ExternalJarFramework(Root<?> root, File jarFile) {
+		super(root, jarFile);
 	}
-	
-	public synchronized List<Root<T>> getRoots() {
-		if (this.roots == null) {
-			this.roots = createRoots();
-		}
-		return this.roots;
-	}
-
-	public synchronized Set<T> getAllFrameworks() {
-		Map<String, T> frameworks = new HashMap<String, T>();
-		for (Root<T> root : getRoots()) {
-			for (T framework : root.getFrameworks()) {
-				String frameworkName = framework.getName();
-				if (!frameworks.containsKey(frameworkName)) {
-					frameworks.put(frameworkName, framework);
-				}
-			}
-		}
-		return new HashSet<T>(frameworks.values());
-	}
-
-	public synchronized Set<T> getAllApplications() {
-		Map<String, T> applications = new HashMap<String, T>();
-		for (Root<T> root : getRoots()) {
-			for (T application : root.getApplications()) {
-				String frameworkName = application.getName();
-				if (!applications.containsKey(frameworkName)) {
-					applications.put(frameworkName, application);
-				}
-			}
-		}
-		return new HashSet<T>(applications.values());
-	}
-
-	public synchronized void refreshRoots() {
-		this.roots = null;
-		getRoots();
-	}
-
-	public T getFrameworkWithName(String frameworkName) {
-		for (Root<T> root : getRoots()) {
-			T framework = root.getFrameworkWithName(frameworkName);
-			if (framework != null) {
-				return framework;
-			}
-		}
-		return null;
-	}
-
-	public T getApplicationWithName(String applicationName) {
-		for (Root<T> root : getRoots()) {
-			T application = root.getApplicationWithName(applicationName);
-			if (application != null) {
-				return application;
-			}
-		}
-		return null;
-	}
-
-  public Root<T> getRootWithShortName(String shortName) {
-    for (Root<T> root : getRoots()) {
-      if (shortName.equals(root.getShortName())) {
-        return root;
-      }
-    }
-    return null;
-  }
 }

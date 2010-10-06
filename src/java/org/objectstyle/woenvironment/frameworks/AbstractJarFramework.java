@@ -55,85 +55,89 @@
  */
 package org.objectstyle.woenvironment.frameworks;
 
-import java.util.HashMap;
-import java.util.HashSet;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
+import java.util.jar.JarEntry;
+import java.util.jar.JarFile;
 
-public abstract class FrameworkModel<T extends IFramework> {
-	private List<Root<T>> roots;
+import org.objectstyle.woenvironment.plist.SimpleParserDataStructureFactory;
+import org.objectstyle.woenvironment.plist.WOLXMLPropertyListSerialization;
 
-	protected abstract List<Root<T>> createRoots();
-	
-	public synchronized void invalidateRoots() {
-		this.roots = null;
-	}
-	
-	public synchronized List<Root<T>> getRoots() {
-		if (this.roots == null) {
-			this.roots = createRoots();
+public abstract class AbstractJarFramework extends Framework {
+	private File jarFile;
+
+	private boolean isValid;
+
+	private Map<String, Object> infoPList;
+
+	public AbstractJarFramework(Root<?> root, File jarFile) {
+		super(root, null);
+		this.jarFile = jarFile;
+		Map<String, Object> infoPList = getInfoPlist();
+		if (infoPList != null) {
+			setName((String) infoPList.get("NSExecutable"));
+			isValid = true;
 		}
-		return this.roots;
+		else {
+			setName("Unknown: " + this.jarFile);
+			isValid = false;
+		}
 	}
 
-	public synchronized Set<T> getAllFrameworks() {
-		Map<String, T> frameworks = new HashMap<String, T>();
-		for (Root<T> root : getRoots()) {
-			for (T framework : root.getFrameworks()) {
-				String frameworkName = framework.getName();
-				if (!frameworks.containsKey(frameworkName)) {
-					frameworks.put(frameworkName, framework);
+	public boolean isValid() {
+		return isValid;
+	}
+
+	public File getJarFile() {
+		return this.jarFile;
+	}
+
+	@SuppressWarnings("unchecked")
+	public synchronized Map<String, Object> getInfoPlist() {
+		if (infoPList == null) {
+			try {
+				JarFile jarFileObj = new JarFile(jarFile);
+				JarEntry infoPListEntry = jarFileObj.getJarEntry("Resources/Info.plist");
+				if (infoPListEntry != null) {
+					InputStream infoPListStream = jarFileObj.getInputStream(infoPListEntry);
+			    	try {
+			    		infoPList = (Map<String, Object>) WOLXMLPropertyListSerialization.propertyListWithContentsOfInputStream(infoPListStream, new SimpleParserDataStructureFactory());
+			    	}
+			    	catch (Throwable t) {
+			    		throw new RuntimeException("Failed to parse an XML plist from '" + jarFile.getAbsolutePath() + "'.", t);
+					}
+					finally {
+						infoPListStream.close();
+					}
 				}
 			}
-		}
-		return new HashSet<T>(frameworks.values());
-	}
-
-	public synchronized Set<T> getAllApplications() {
-		Map<String, T> applications = new HashMap<String, T>();
-		for (Root<T> root : getRoots()) {
-			for (T application : root.getApplications()) {
-				String frameworkName = application.getName();
-				if (!applications.containsKey(frameworkName)) {
-					applications.put(frameworkName, application);
-				}
+			catch (IOException e) {
+				throw new RuntimeException("Failed to load a framework from the jar '" + jarFile.getAbsolutePath() + "'.", e);
 			}
 		}
-		return new HashSet<T>(applications.values());
+		return infoPList;
 	}
 
-	public synchronized void refreshRoots() {
-		this.roots = null;
-		getRoots();
+	public List<FrameworkLibrary> getFrameworkLibraries() {
+		List<FrameworkLibrary> libraries = new LinkedList<FrameworkLibrary>();
+		libraries.add(new FrameworkLibrary(this.jarFile, null, null, null, null));
+		return libraries;
 	}
 
-	public T getFrameworkWithName(String frameworkName) {
-		for (Root<T> root : getRoots()) {
-			T framework = root.getFrameworkWithName(frameworkName);
-			if (framework != null) {
-				return framework;
-			}
-		}
-		return null;
+	public IFramework resolveFramework() {
+		return this;
 	}
 
-	public T getApplicationWithName(String applicationName) {
-		for (Root<T> root : getRoots()) {
-			T application = root.getApplicationWithName(applicationName);
-			if (application != null) {
-				return application;
-			}
-		}
-		return null;
+	public boolean isResolved() {
+		return true;
 	}
 
-  public Root<T> getRootWithShortName(String shortName) {
-    for (Root<T> root : getRoots()) {
-      if (shortName.equals(root.getShortName())) {
-        return root;
-      }
-    }
-    return null;
-  }
+	@Override
+	public String toString() {
+		return "[Framework: name = " + getName() + "; jar file = " + getJarFile() + "]";
+	}
 }
