@@ -8,19 +8,106 @@
 	<packaging>jar</packaging>
 	<name>WOEnvironment</name>
 	<description>Contains woenvironment stuff.</description>
-	<url>http://objectstyle.org/woproject/</url>
+	<url>https://wocommunity.org/</url>
 	<inceptionYear>2001</inceptionYear>
 
 	<build>
 		<sourceDirectory>src/java</sourceDirectory>
 	</build>
 
+	<licenses>
+		<license>
+			<name>The ObjectStyle Group Software License, Version 1.0</name>
+			<url>https://github.com/wocommunity/woenvironment/blob/master/license.txt</url>
+		</license>
+	</licenses>
+
+	<developers>
+		<developer>
+			<name>Ramsey Gurley</name>
+			<email>ramseygurley@gmail.com</email>
+			<organization>WOCommunity</organization>
+			<organizationUrl>https://github.com/wocommunity/</organizationUrl>
+		</developer>
+	</developers>
+
 	<scm>
-		<connection>
-			scm:svn:http://svn.objectstyle.org/repos/woproject/trunk/woproject/woenvironment</connection>
+		<connection>scm:git:git://github.com:wocommunity/woenvironment.git</connection>
 		<developerConnection>
-			scm:svn:https://svn.objectstyle.org/repos/woproject/trunk/woproject/woenvironment</developerConnection>
-		<url>
-			http://svn.objectstyle.org/repos/woproject/trunk/woproject/maven2/woenvironment</url>
+			scm:git:git://github.com:wocommunity/woenvironment.git</developerConnection>
+		<url>http://github.com/wocommunity/woenvironment/tree/master</url>
 	</scm>
+
+	<profiles>
+		<profile>
+			<id>release</id>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>org.sonatype.central</groupId>
+						<artifactId>central-publishing-maven-plugin</artifactId>
+						<version>0.4.0</version>
+						<extensions>true</extensions>
+						<configuration>
+							<publishingServerId>central</publishingServerId>
+							<tokenAuth>true</tokenAuth>
+							<autoPublish>true</autoPublish>
+						</configuration>
+					</plugin>
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-source-plugin</artifactId>
+						<version>3.3.0</version>
+						<executions>
+							<execution>
+								<id>attach-sources</id>
+								<phase>verify</phase>
+								<goals>
+									<goal>jar-no-fork</goal>
+								</goals>
+							</execution>
+						</executions>
+					</plugin>
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-javadoc-plugin</artifactId>
+						<version>3.6.3</version>
+						<executions>
+							<execution>
+								<id>attach-javadoc</id>
+								<goals>
+									<goal>jar</goal>
+								</goals>
+							</execution>
+						</executions>
+						<configuration>
+							<stylesheet>java</stylesheet>
+							<doclint>none</doclint>
+						</configuration>
+					</plugin>
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-gpg-plugin</artifactId>
+						<version>3.1.0</version>
+						<executions>
+							<execution>
+								<id>sign-artifacts</id>
+								<phase>verify</phase>
+								<goals>
+									<goal>sign</goal>
+								</goals>
+							</execution>
+						</executions>
+						<configuration>
+							<gpgArguments>
+								<arg>--pinentry-mode</arg>
+								<arg>loopback</arg>
+							</gpgArguments>
+						</configuration>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+	</profiles>
+	
 </project>
